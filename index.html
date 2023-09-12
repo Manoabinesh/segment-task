@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segment Popup</title>
+    <style>
+        /* CSS for styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .popup-content {
+            background-color: #fff;
+            width: 400px;
+            margin: 100px auto;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        input[type="text"],
+        .schema-checkbox {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .schema-checkbox label {
+            display: block;
+        }
+
+        .editable-dropdown {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .editable-dropdown select {
+            flex-grow: 1;
+        }
+
+        .editable-dropdown button {
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .editable-dropdown button.edit-button {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .editable-dropdown button.delete-button {
+            background-color: #dc3545;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <button id="saveSegmentBtn">Save Segment</button>
+    </div>
+
+    <div class="popup" id="segmentPopup">
+        <div class="popup-content">
+            <h2>Enter Segment Name</h2>
+            <input type="text" id="segmentName" placeholder="Segment Name">
+
+            <h2>Add schema to segment</h2>
+            <div class="schema-checkbox">
+                <select id="schemaSelect">
+                    <option value="" selected>Add schema to segment</option>
+                    <option value="first_name">First Name</option>
+                    <option value="last_name">Last Name</option>
+                    <option value="gender">Gender</option>
+                    <option value="age">Age</option>
+                    <option value="account_name">Account Name</option>
+                    <option value="city">City</option>
+                    <option value="state">State</option>
+                </select>
+            </div>
+            <div id="blueBox"></div>
+            <a href="#" id="addNewSchema">+ Add new schema</a>
+
+            <button id="saveSegmentButton">Save</button>
+            <button id="closePopup">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to show/hide the popup and update blueBox
+        const saveSegmentBtn = document.getElementById("saveSegmentBtn");
+        const segmentPopup = document.getElementById("segmentPopup");
+        const closePopupBtn = document.getElementById("closePopup");
+        const schemaSelect = document.getElementById("schemaSelect");
+        const addNewSchemaLink = document.getElementById("addNewSchema");
+        const blueBox = document.getElementById("blueBox");
+
+        saveSegmentBtn.addEventListener("click", function () {
+            segmentPopup.style.display = "block";
+        });
+
+        closePopupBtn.addEventListener("click", function () {
+            segmentPopup.style.display = "none";
+        });
+
+        schemaSelect.addEventListener("change", function () {
+            const selectedOption = schemaSelect.options[schemaSelect.selectedIndex].text;
+            if (selectedOption !== "Add schema to segment") {
+                const selectedSchema = document.createElement("div");
+                selectedSchema.textContent = selectedOption;
+                blueBox.innerHTML = '';
+                blueBox.appendChild(selectedSchema);
+            } else {
+                blueBox.innerHTML = '';
+            }
+        });
+
+        addNewSchemaLink.addEventListener("click", function (e) {
+            e.preventDefault();
+            const customValue = prompt("Enter a custom value:");
+            if (customValue) {
+                const newDropdown = document.createElement("div");
+                newDropdown.className = "editable-dropdown";
+                newDropdown.innerHTML = `<input type="text" value="${customValue}" readonly>
+                <button class="edit-button">Edit</button>
+                <button class="delete-button">Delete</button>`;
+                const editButton = newDropdown.querySelector(".edit-button");
+                editButton.addEventListener("click", function () {
+                    const newValue = prompt("Edit the value:", customValue);
+                    if (newValue) {
+                        const input = newDropdown.querySelector("input");
+                        input.value = newValue;
+                    }
+                });
+                const deleteButton = newDropdown.querySelector(".delete-button");
+                deleteButton.addEventListener("click", function () {
+                    newDropdown.remove();
+                });
+                blueBox.appendChild(newDropdown);
+            }
+        });
+
+        // JavaScript to handle saving data when the "Save" button is clicked
+        const saveSegmentButton = document.getElementById("saveSegmentButton");
+        saveSegmentButton.addEventListener("click", function () {
+            // Data to be sent to the server
+            const dataToSend = {
+                "segment_name": document.getElementById("segmentName").value,
+                "schema": {}
+            };
+
+            // Iterate over the schema elements and add them to dataToSend
+            const schemaElements = document.querySelectorAll(".editable-dropdown input");
+            schemaElements.forEach(function (element) {
+                const schemaName = element.value;
+                dataToSend.schema[schemaName] = schemaName;
+            });
+
+            // Convert data to JSON format
+            const jsonData = JSON.stringify(dataToSend);
+
+            // Webhook URL from webhook.site (Replace with your actual URL)
+            const webhookUrl = 'https://webhook.site/9175241a-bf88-4924-891d-da02d5ce34c3';
+
+            // Create an HTTP POST request
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', webhookUrl, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            // Handle the response from the server (optional)
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    console.log('Data sent successfully to the server.');
+                } else {
+                    console.error('Failed to send data to the server.');
+                }
+            };
+
+            // Send the JSON data to the server
+            xhr.send(jsonData);
+
+            // Close the popup
+            segmentPopup.style.display = "none";
+        });
+    </script>
+</body>
+
+</html>

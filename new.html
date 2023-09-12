@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multiple Options Selection</title>
+</head>
+<body>
+    <label for="options">Select multiple options:</label>
+    <select id="options" multiple>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+        <option value="option3">Option 3</option>
+        <option value="option4">Option 4</option>
+    </select>
+
+    <br><br>
+    
+    <button onclick="getSelectedOptions()">Get Selected Options</button>
+
+    <script>
+        function getSelectedOptions() {
+            var selectElement = document.getElementById("options");
+            var selectedOptions = [];
+            
+            for (var i = 0; i < selectElement.options.length; i++) {
+                if (selectElement.options[i].selected) {
+                    selectedOptions.push(selectElement.options[i].value);
+                }
+            }
+            
+            alert("Selected options: " + selectedOptions.join(", "));
+        }
+    </script>
+</body>
+</html>
