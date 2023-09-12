@@ -102,8 +102,8 @@
 
             <h2>Add schema to segment</h2>
             <div class="schema-checkbox">
-                <select id="schemaSelect">
-                    <option value="" selected>Add schema to segment</option>
+                <select id="schemaSelect" multiple >
+                    <option value="Add schema to segment" disabled>Add schema to segment</option>
                     <option value="first_name">First Name</option>
                     <option value="last_name">Last Name</option>
                     <option value="gender">Gender</option>
@@ -112,7 +112,9 @@
                     <option value="city">City</option>
                     <option value="state">State</option>
                 </select>
+                <button onclick="getSelectedOptions()">Get Selected Options</button>
             </div>
+            <div id="selectedOptions"></div>
             <div id="blueBox"></div>
             <a href="#" id="addNewSchema">+ Add new schema</a>
 
@@ -174,16 +176,38 @@
                 blueBox.appendChild(newDropdown);
             }
         });
+        let selectedValue =[]
 
+        function getSelectedOptions() {
+            const selectBox = document.getElementById("schemaSelect");
+            const selectedOptions = [];
+            
+            // Loop through each option in the select box
+            for (let i = 0; i < schemaSelect.options.length; i++) {
+                if (schemaSelect.options[i].selected) {
+                    selectedOptions.push(schemaSelect.options[i].value);
+                }
+            }
+            selectedValue=selectedOptions
+            
+            // Display the selected options in the "selectedOptions" div
+            const selectedOptionsDiv = document.getElementById("selectedOptions");
+            selectedOptionsDiv.innerHTML = selectedOptions.join(", ");
+        }
         // JavaScript to handle saving data when the "Save" button is clicked
         const saveSegmentButton = document.getElementById("saveSegmentButton");
-        saveSegmentButton.addEventListener("click", function () {
+        saveSegmentButton.addEventListener("click",async function(selectedOptions) {
             // Data to be sent to the server
-            const dataToSend = {
+          
+            let dataToSend = {
                 "segment_name": document.getElementById("segmentName").value,
                 "schema": {}
             };
-
+            console.log("selectedOptions",selectedValue);
+            selectedValue.forEach((element)=>{
+                console.log("element",element);
+                dataToSend.schema[element] = element;
+            })
             // Iterate over the schema elements and add them to dataToSend
             const schemaElements = document.querySelectorAll(".editable-dropdown input");
             schemaElements.forEach(function (element) {
@@ -193,30 +217,21 @@
 
             // Convert data to JSON format
             const jsonData = JSON.stringify(dataToSend);
+            console.log("jsonData",jsonData);
+            
 
-            // Webhook URL from webhook.site (Replace with your actual URL)
-            const webhookUrl = 'https://webhook.site/9175241a-bf88-4924-891d-da02d5ce34c3';
-
-            // Create an HTTP POST request
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', webhookUrl, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-
-            // Handle the response from the server (optional)
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    console.log('Data sent successfully to the server.');
-                } else {
-                    console.error('Failed to send data to the server.');
-                }
-            };
-
-            // Send the JSON data to the server
-            xhr.send(jsonData);
-
-            // Close the popup
-            segmentPopup.style.display = "none";
+            const response = await postData(jsonData);
+        
         });
+        async function postData(jsonData) {
+            segmentPopup.style.display = "none";
+            options = { method: 'POST', body: jsonData, headers: { accept: 'application/json'}
+        }
+
+        let apiUrl = 'https://webhook.site/9175241a-bf88-4924-891d-da02d5ce34c3'
+        const response = await fetch(apiUrl, options);
+        const data = await response.json();
+        }
     </script>
 </body>
 
