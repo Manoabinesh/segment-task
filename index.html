@@ -10,6 +10,8 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            margin: 0;
+            /* Remove default margin to prevent horizontal scroll */
         }
 
         .container {
@@ -37,8 +39,9 @@
 
         .popup-content {
             background-color: #fff;
-            width: 400px;
-            margin: 100px auto;
+            width: 90%;
+            max-width: 400px;
+            margin: 10% auto;
             padding: 20px 40px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
@@ -87,6 +90,55 @@
             background-color: #dc3545;
             color: #fff;
         }
+
+        /* Media query for screens between 320px and 480px */
+        @media screen and (min-width: 320px) and (max-width: 480px) {
+            .popup-content {
+                width: 90%;
+                max-width: 90%;
+                margin: 20px auto;
+                padding: 10px;
+                /* Add 10px padding for smaller screens */
+            }
+
+            input[type="text"],
+            .schema-checkbox {
+                padding: 8px;
+                max-width: 96%;
+                margin-right: 35px;
+            }
+
+            select#schemaSelect {
+                max-width: 100%;
+                height: auto;
+                overflow: auto;
+                /* Enable vertical scrolling if needed */
+
+            }
+
+            .editable-dropdown {
+                flex-direction: column;
+                max-width: 96%;
+            }
+
+            button {
+                display: block;
+                width: 100%;
+                margin-top: 15px;
+            }
+
+            #schemaSelect {
+                width: 100%;
+            }
+
+            #saveSegmentBtn {
+                width: 80%;
+                margin-left: 40px;
+            }
+            #addNewSchema{
+                margin-top: 15px;
+            }
+        }
     </style>
 </head>
 
@@ -102,7 +154,7 @@
 
             <h2>Add schema to segment</h2>
             <div class="schema-checkbox">
-                <select id="schemaSelect" multiple >
+                <select id="schemaSelect" multiple>
                     <option value="Add schema to segment" disabled>Add schema to segment</option>
                     <option value="first_name">First Name</option>
                     <option value="last_name">Last Name</option>
@@ -176,36 +228,36 @@
                 blueBox.appendChild(newDropdown);
             }
         });
-        let selectedValue =[]
+        let selectedValue = []
 
         function getSelectedOptions() {
             const selectBox = document.getElementById("schemaSelect");
             const selectedOptions = [];
-            
+
             // Loop through each option in the select box
             for (let i = 0; i < schemaSelect.options.length; i++) {
                 if (schemaSelect.options[i].selected) {
                     selectedOptions.push(schemaSelect.options[i].value);
                 }
             }
-            selectedValue=selectedOptions
-            
+            selectedValue = selectedOptions
+
             // Display the selected options in the "selectedOptions" div
             const selectedOptionsDiv = document.getElementById("selectedOptions");
             selectedOptionsDiv.innerHTML = selectedOptions.join(", ");
         }
         // JavaScript to handle saving data when the "Save" button is clicked
         const saveSegmentButton = document.getElementById("saveSegmentButton");
-        saveSegmentButton.addEventListener("click",async function(selectedOptions) {
+        saveSegmentButton.addEventListener("click", async function (selectedOptions) {
             // Data to be sent to the server
-          
+
             let dataToSend = {
                 "segment_name": document.getElementById("segmentName").value,
                 "schema": {}
             };
-            console.log("selectedOptions",selectedValue);
-            selectedValue.forEach((element)=>{
-                console.log("element",element);
+            console.log("selectedOptions", selectedValue);
+            selectedValue.forEach((element) => {
+                console.log("element", element);
                 dataToSend.schema[element] = element;
             })
             // Iterate over the schema elements and add them to dataToSend
@@ -217,20 +269,21 @@
 
             // Convert data to JSON format
             const jsonData = JSON.stringify(dataToSend);
-            console.log("jsonData",jsonData);
-            
+            console.log("jsonData", jsonData);
+
 
             const response = await postData(jsonData);
-        
+
         });
         async function postData(jsonData) {
             segmentPopup.style.display = "none";
-            options = { method: 'POST', body: jsonData, headers: { accept: 'application/json'}
-        }
+            options = {
+                method: 'POST', body: jsonData, headers: { accept: 'application/json' }
+            }
 
-        let apiUrl = 'https://webhook.site/9175241a-bf88-4924-891d-da02d5ce34c3'
-        const response = await fetch(apiUrl, options);
-        const data = await response.json();
+            let apiUrl = 'https://webhook.site/9175241a-bf88-4924-891d-da02d5ce34c3'
+            const response = await fetch(apiUrl, options);
+            const data = await response.json();
         }
     </script>
 </body>
